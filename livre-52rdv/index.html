@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ink: #0a0a0d;
+        --gold: #ffd79a;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      .scene { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+      .cam { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+      .abs { position: absolute; }
+
+      /* personnages */
+      .char { position: absolute; width: 200px; height: 420px; transform-origin: 50% 100%; }
+      .char .float { position: absolute; inset: 0; transform-origin: 50% 60%; }
+      .char svg { position: absolute; left: 0; top: 0; width: 200px; height: 420px; overflow: visible; }
+      .char .color { opacity: 0; }
+      .char .shadow {
+        position: absolute; left: 30px; top: 418px; width: 140px; height: 26px; border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 70%);
+      }
+      .char .aura {
+        position: absolute; left: -160px; top: -60px; width: 520px; height: 560px; border-radius: 50%; opacity: 0;
+        background: radial-gradient(ellipse, rgba(255,214,150,.55) 0%, rgba(255,190,120,.18) 40%, rgba(255,190,120,0) 70%);
+        mix-blend-mode: screen;
+      }
+
+      /* livre */
+      .book3d { position: absolute; transform-style: preserve-3d; }
+      .book3d .face { position: absolute; left: 0; top: 0; width: 100%; height: 100%; backface-visibility: hidden; }
+      .book3d img { display: block; width: 100%; height: 100%; border-radius: 3px 6px 6px 3px; }
+      .book3d .hinge {
+        position: absolute; left: 0; top: 0; bottom: 0; width: 5%;
+        background: linear-gradient(90deg, rgba(0,0,0,.18), rgba(255,255,255,.06) 60%, rgba(0,0,0,0));
+        border-radius: 3px 0 0 3px;
+      }
+      .book3d .pages {
+        position: absolute; top: 0; height: 100%;
+        background: repeating-linear-gradient(90deg, #f4ead9 0 2px, #e2d4bd 2px 3px);
+      }
+
+      #grain { position: absolute; left: -100px; top: -100px; width: 1280px; height: 2120px; opacity: .07; mix-blend-mode: overlay; pointer-events: none; }
+      #vignette {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.45) 100%);
+      }
+      #black { position: absolute; inset: 0; background: #000; pointer-events: none; }
+      #wipe {
+        position: absolute; left: 0; top: 0; width: 1180px; height: 1920px; opacity: 0;
+        background:
+          linear-gradient(90deg, rgba(0,0,0,.25), rgba(0,0,0,0) 8%, rgba(0,0,0,0) 92%, rgba(0,0,0,.35)),
+          repeating-linear-gradient(90deg, #58616c 0 180px, #535b66 180px 186px),
+          #58616c;
+        box-shadow: 30px 0 60px rgba(0,0,0,.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="30" data-width="1080" data-height="1920">
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <radialGradient id="gGhost" cx="38%" cy="28%" r="80%">
+            <stop offset="0" stop-color="#26262e" />
+            <stop offset=".6" stop-color="#0d0d11" />
+            <stop offset="1" stop-color="#050507" />
+          </radialGradient>
+          <radialGradient id="gSkin" cx="40%" cy="35%" r="70%">
+            <stop offset="0" stop-color="#f6d3b8" />
+            <stop offset="1" stop-color="#d99f7f" />
+          </radialGradient>
+          <linearGradient id="gHer" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f0c27a" />
+            <stop offset="1" stop-color="#c98a45" />
+          </linearGradient>
+          <linearGradient id="gHim" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8fb5a6" />
+            <stop offset="1" stop-color="#5b8274" />
+          </linearGradient>
+          <filter id="fSoft" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="1.6" />
+          </filter>
+          <filter id="fSofter" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.4" />
+          </filter>
+          <filter id="fGrain">
+            <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5" />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+        </defs>
+      </svg>
+
+      <!-- 00-05 cuisine -->
+      <div id="s1" class="scene clip" data-start="0" data-duration="5.4" data-track-index="0"><div class="cam" style="width:1760px"></div></div>
+      <!-- 05-09 départ -->
+      <div id="s2" class="scene clip" data-start="5" data-duration="4.05" data-track-index="1"><div class="cam"></div></div>
+      <!-- 09-13 ensemble mais seuls -->
+      <div id="s3" class="scene clip" data-start="8.85" data-duration="4.5" data-track-index="2"><div class="cam"></div></div>
+      <!-- 13-17 la distance -->
+      <div id="s4" class="scene clip" data-start="13" data-duration="4.4" data-track-index="3"><div class="cam"></div></div>
+      <!-- 17-27 le livre, la couleur, les retrouvailles -->
+      <div id="s5" class="scene clip" data-start="17" data-duration="10.6" data-track-index="4"><div class="cam"></div></div>
+      <!-- 27-30 le livre -->
+      <div id="s7" class="scene clip" data-start="27.2" data-duration="2.8" data-track-index="5"><div class="cam"></div></div>
+
+      <div id="wipe"></div>
+      <svg id="grain" viewBox="0 0 640 1060" preserveAspectRatio="none"><rect width="640" height="1060" filter="url(#fGrain)" /></svg>
+      <div id="vignette"></div>
+      <div id="black"></div>
+
+      <audio id="music" src="assets/bande-son.wav" data-start="0" data-duration="30" data-volume="1" data-track-index="6"></audio>
+    </div>
+
+    <script>
+      const DUR = 30;
+      let seed = 52;
+      const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const $ = (s) => document.querySelector(s);
+      function add(parent, css, html = "", cls = "abs") {
+        const d = document.createElement("div");
+        d.className = cls;
+        d.style.cssText = css;
+        d.innerHTML = html;
+        (typeof parent === "string" ? $(parent) : parent).appendChild(d);
+        return d;
+      }
+      const COVER = "assets/couverture.png";
+
+      // ---------------- personnages ----------------
+      const ARM_B = "M126 152 C136 190 142 232 140 284";
+      const ARM_F = "M74 152 C64 190 58 232 60 284";
+      function figure(kind) {
+        const ghostBody = "M72 136 C52 152 42 228 40 298 C38 342 42 372 48 394 Q62 380 76 396 Q91 382 104 398 Q118 382 132 396 Q147 380 160 392 C166 360 164 300 158 240 C152 184 142 152 128 136 Q100 124 72 136 Z";
+        const bun = kind === "her" ? `<circle cx="66" cy="58" r="17" fill="url(#gGhost)"/>` : "";
+        const ghost = `
+          <svg class="ghost" viewBox="0 0 200 420"><g filter="url(#fSoft)" opacity=".95">
+            <g class="arm-b"><path d="${ARM_B}" stroke="#0b0b0e" stroke-width="21" stroke-linecap="round" fill="none"/></g>
+            <path d="${ghostBody}" fill="url(#gGhost)"/>
+            <g class="head">${bun}<rect x="88" y="112" width="24" height="30" rx="10" fill="#0b0b0e"/><circle cx="100" cy="84" r="42" fill="url(#gGhost)"/></g>
+            <g class="arm-f"><path d="${ARM_F}" stroke="#0b0b0e" stroke-width="21" stroke-linecap="round" fill="none"/></g>
+          </g></svg>`;
+        const her = kind === "her";
+        const cloth = her ? "url(#gHer)" : "url(#gHim)";
+        const sleeve = her ? "#dba45f" : "#73998b";
+        const body = her
+          ? `<path d="M72 136 C54 152 46 228 44 296 C42 330 44 352 48 368 Q100 384 152 368 C158 340 158 300 154 240 C150 184 140 152 128 136 Q100 124 72 136 Z" fill="${cloth}"/>
+             <path d="M48 352 Q100 368 152 352 L152 368 Q100 384 48 368 Z" fill="#c4703f" opacity=".7"/>`
+          : `<path d="M58 262 L142 262 L138 366 L106 366 L100 304 L94 366 L62 366 Z" fill="#5a4a40"/>
+             <path d="M70 136 C56 150 50 210 52 272 Q100 284 148 272 C150 210 144 150 130 136 Q100 124 70 136 Z" fill="${cloth}"/>`;
+        const hair = her
+          ? `<circle cx="64" cy="58" r="19" fill="#5b3426"/>
+             <path d="M58 96 C50 52 80 34 104 38 C130 40 148 58 143 80 C128 64 104 60 86 70 C76 92 76 122 64 134 C56 122 55 108 58 96 Z" fill="#5b3426"/>`
+          : `<path d="M60 82 C58 50 80 38 104 40 C128 42 143 58 141 76 C124 64 96 62 74 70 C68 76 64 84 60 88 Z" fill="#3a2a22"/>`;
+        const color = `
+          <svg class="color" viewBox="0 0 200 420"><g>
+            <g class="arm-b"><path d="${ARM_B}" stroke="${sleeve}" stroke-width="21" stroke-linecap="round" fill="none"/><circle cx="140" cy="290" r="11" fill="url(#gSkin)"/></g>
+            <ellipse cx="80" cy="372" rx="17" ry="8" fill="#4a3328"/><ellipse cx="120" cy="372" rx="17" ry="8" fill="#4a3328"/>
+            ${body}
+            <g class="head"><rect x="90" y="112" width="20" height="30" rx="9" fill="#e2ad8e"/><circle cx="100" cy="84" r="42" fill="url(#gSkin)"/>${hair}
+              <ellipse cx="122" cy="96" rx="8" ry="5" fill="#ee9f8c" opacity=".55"/></g>
+            <g class="arm-f"><path d="${ARM_F}" stroke="${sleeve}" stroke-width="21" stroke-linecap="round" fill="none"/><circle cx="60" cy="290" r="11" fill="url(#gSkin)"/></g>
+          </g></svg>`;
+        return `<div class="aura"></div><div class="shadow"></div><div class="float">${ghost}${color}</div>`;
+      }
+      function makeChar(parent, id, kind, x, feetY, scale, z = 5) {
+        const d = add(parent, "", figure(kind), "char");
+        d.id = id;
+        Object.assign(d.style, { left: x + "px", top: feetY - 420 + "px", zIndex: z });
+        gsap.set(d, { scale });
+        return d;
+      }
+      // les rotations des bras et de la tête se font autour de l'épaule / du cou
+      const origin = { "arm-b": "126 152", "arm-f": "74 152", head: "100 130" };
+      function pose(tl, sel, part, vars, at) {
+        tl.to(`${sel} .${part}`, { svgOrigin: origin[part], ...vars }, at);
+      }
+      function setPose(sel, part, vars) {
+        gsap.set(`${sel} .${part}`, { svgOrigin: origin[part], ...vars });
+      }
+      const SLUMP = { x: 9, y: 16, rotation: 14 };
+
+      // ================= S1 : cuisine =================
+      (() => {
+        const c = "#s1 .cam";
+        add(c, "left:0;top:0;width:1760px;height:1330px;background:linear-gradient(180deg,#4a525c,#5b6470 60%,#505862)");
+        add(c, "left:0;top:1330px;width:1760px;height:590px;background:linear-gradient(180deg,#3a4048,#262a30);");
+        add(c, "left:0;top:1330px;width:1760px;height:590px;opacity:.25;background:repeating-linear-gradient(90deg,transparent 0 158px,#1e2227 158px 162px)");
+        add(c, "left:0;top:1310px;width:1760px;height:22px;background:#3f464f;box-shadow:0 6px 14px rgba(0,0,0,.35)");
+        // fenêtre + lumière froide
+        add(c, "left:150px;top:420px;width:360px;height:470px;border-radius:18px;background:#6f7882;box-shadow:inset 0 0 0 16px #6f7882, 0 18px 40px rgba(0,0,0,.35)");
+        add(c, "left:170px;top:440px;width:320px;height:430px;border-radius:8px;background:linear-gradient(180deg,#c3d3e0,#93a8bb)");
+        add(c, "left:322px;top:440px;width:16px;height:430px;background:#6f7882");
+        add(c, "left:170px;top:648px;width:320px;height:14px;background:#6f7882");
+        add(c, "left:120px;top:880px;width:420px;height:26px;border-radius:10px;background:#79828c");
+        add(c, "left:140px;top:1330px;width:520px;height:420px;opacity:.16;background:linear-gradient(180deg,#cfe0ee,transparent);clip-path:polygon(10% 0,80% 0,100% 100%,30% 100%)");
+        // placards hauts
+        for (let i = 0; i < 4; i++) {
+          add(c, `left:${640 + i * 160}px;top:380px;width:150px;height:250px;border-radius:14px;background:linear-gradient(160deg,#717a85,#5f6873);box-shadow:0 14px 26px rgba(0,0,0,.3)`);
+          add(c, `left:${700 + i * 160}px;top:590px;width:30px;height:8px;border-radius:4px;background:#8d969f`);
+        }
+        // suspension éteinte
+        add(c, "left:1000px;top:0;width:4px;height:250px;background:#2f343a");
+        add(c, "left:942px;top:240px;width:120px;height:70px;border-radius:60px 60px 10px 10px;background:linear-gradient(180deg,#666f79,#4c535c)");
+        // plan de travail
+        add(c, "left:600px;top:1010px;width:700px;height:320px;border-radius:10px;background:linear-gradient(180deg,#59616b,#4b525b)");
+        for (let i = 0; i < 4; i++) add(c, `left:${612 + i * 172}px;top:1040px;width:160px;height:270px;border-radius:10px;background:#545c66;box-shadow:inset 0 0 0 3px #4a515a`);
+        add(c, "left:585px;top:985px;width:730px;height:34px;border-radius:10px;background:linear-gradient(180deg,#8a939c,#727a83);box-shadow:0 10px 18px rgba(0,0,0,.3)");
+        // bouilloire + tasses
+        add(c, "left:700px;top:900px;width:96px;height:88px;border-radius:40px 40px 14px 14px;background:linear-gradient(160deg,#9aa2ab,#6b737c)");
+        add(c, "left:792px;top:925px;width:30px;height:12px;border-radius:6px;background:#6b737c;transform:rotate(-30deg)");
+        add(c, "left:1130px;top:940px;width:46px;height:48px;border-radius:8px 8px 16px 16px;background:#7b838c");
+        add(c, "left:1190px;top:948px;width:40px;height:40px;border-radius:8px 8px 14px 14px;background:#6f7780");
+        // frigo
+        add(c, "left:1360px;top:600px;width:280px;height:730px;border-radius:30px;background:linear-gradient(90deg,#959ea7,#828b94 70%,#727a83);box-shadow:0 20px 50px rgba(0,0,0,.4)");
+        add(c, "left:1360px;top:880px;width:280px;height:6px;background:#6c747d");
+        add(c, "left:1380px;top:700px;width:12px;height:140px;border-radius:6px;background:#b4bcc4");
+        add(c, "left:1380px;top:920px;width:12px;height:180px;border-radius:6px;background:#b4bcc4");
+        add(c, "left:1650px;top:900px;width:110px;height:430px;border-radius:12px;background:#535b65");
+
+        makeChar(c, "k-him", "him", 1580, 1268, 0.92, 4);
+        makeChar(c, "k-her", "her", 130, 1300, 0.96, 6);
+        setPose("#k-him", "head", SLUMP);
+        setPose("#k-her", "head", SLUMP);
+        gsap.set("#k-him .float", { scaleX: -1 });
+      })();
+
+      // ================= S2 : départ =================
+      (() => {
+        const c = "#s2 .cam";
+        add(c, "left:0;top:0;width:1080px;height:1330px;background:linear-gradient(180deg,#434a54,#535b66 60%,#4a525c)");
+        add(c, "left:0;top:1330px;width:1080px;height:590px;background:linear-gradient(180deg,#363c44,#22262b)");
+        add(c, "left:0;top:1310px;width:1080px;height:22px;background:#3c434b");
+        // porte
+        add(c, "left:540px;top:600px;width:340px;height:730px;border-radius:14px 14px 0 0;background:#3d444d;box-shadow:0 0 0 18px #616a74, 0 20px 50px rgba(0,0,0,.35)");
+        add(c, "left:560px;top:620px;width:300px;height:710px;background:linear-gradient(180deg,#2a2f35,#1b1e22)", "", "abs doorway");
+        add(c, "left:560px;top:620px;width:300px;height:710px;perspective:1600px", `
+          <div id="door2" style="position:absolute;inset:0;transform-origin:0% 50%;background:repeating-linear-gradient(90deg,#58616c 0 96px,#535b66 96px 100px);border-radius:6px;box-shadow:inset 0 0 0 10px #5f6873">
+            <div style="position:absolute;right:28px;top:360px;width:16px;height:46px;border-radius:8px;background:#9aa3ac"></div>
+          </div>`);
+        // console + bol à clés
+        add(c, "left:150px;top:1080px;width:300px;height:26px;border-radius:8px;background:#6c747d;box-shadow:0 10px 20px rgba(0,0,0,.35)");
+        add(c, "left:170px;top:1106px;width:14px;height:224px;background:#5c646d");
+        add(c, "left:416px;top:1106px;width:14px;height:224px;background:#5c646d");
+        add(c, "left:250px;top:1050px;width:90px;height:34px;border-radius:0 0 45px 45px;background:#7d858e");
+        add(c, "left:278px;top:1032px;width:40px;height:28px", `<svg id="keysBowl" viewBox="0 0 40 28" width="40" height="28"><circle cx="12" cy="12" r="8" fill="none" stroke="#a8b0b8" stroke-width="3"/><rect x="18" y="10" width="18" height="5" rx="2" fill="#a8b0b8"/></svg>`);
+        // patère + manteau
+        add(c, "left:200px;top:700px;width:180px;height:14px;border-radius:7px;background:#6c747d");
+        add(c, "left:225px;top:712px;width:70px;height:220px;border-radius:30px 30px 20px 20px;background:#4b525b");
+        add(c, "left:120px;top:440px;width:180px;height:220px;border-radius:8px;background:#5f6873;box-shadow:inset 0 0 0 12px #6b747e");
+
+        makeChar(c, "h-him", "him", 330, 1300, 0.95, 4);
+        makeChar(c, "h-her", "her", -40, 1640, 1.32, 8);
+        setPose("#h-him", "head", SLUMP);
+        setPose("#h-her", "head", { x: 9, y: 18, rotation: 18 });
+        gsap.set("#h-him .float", { scaleX: -1 });
+        // clés dans la main (cachées au départ)
+        $("#h-him .ghost .arm-b").insertAdjacentHTML("beforeend", `<g class="keys" opacity="0"><circle cx="146" cy="300" r="8" fill="none" stroke="#a8b0b8" stroke-width="3"/><rect x="150" y="304" width="16" height="5" rx="2" fill="#a8b0b8"/></g>`);
+      })();
+
+      // ================= S3 : à table, chacun son écran =================
+      (() => {
+        const c = "#s3 .cam";
+        add(c, "left:0;top:0;width:1080px;height:1330px;background:linear-gradient(180deg,#252b36,#323a47 60%,#2b323d)");
+        add(c, "left:0;top:1330px;width:1080px;height:590px;background:linear-gradient(180deg,#20252d,#12151a)");
+        // fenêtre de nuit
+        add(c, "left:720px;top:360px;width:260px;height:380px;border-radius:14px;background:linear-gradient(180deg,#1b2740,#2b3b5c);box-shadow:inset 0 0 0 12px #3e4757");
+        add(c, "left:844px;top:360px;width:12px;height:380px;background:#3e4757");
+        add(c, "left:880px;top:410px;width:30px;height:30px;border-radius:50%;background:#c9d6e8;box-shadow:0 0 40px 10px rgba(180,200,230,.25)");
+        // horloge
+        add(c, "left:420px;top:400px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,#8b94a1,#6b7480);box-shadow:inset 0 0 0 12px #525b67, 0 14px 30px rgba(0,0,0,.4)", `
+          <div style="position:absolute;left:116px;top:50px;width:8px;height:76px;border-radius:4px;background:#2f353d;transform-origin:50% 100%;transform:rotate(300deg)"></div>
+          <div style="position:absolute;left:117px;top:70px;width:6px;height:56px;border-radius:3px;background:#2f353d;transform-origin:50% 100%;transform:rotate(60deg)"></div>
+          <div id="secHand" style="position:absolute;left:118.5px;top:36px;width:3px;height:90px;background:#3a414a;transform-origin:50% 93%"></div>
+          <div style="position:absolute;left:112px;top:112px;width:16px;height:16px;border-radius:50%;background:#2f353d"></div>`);
+        // dossiers de chaises
+        add(c, "left:200px;top:900px;width:200px;height:330px;border-radius:40px 40px 0 0;background:#3b4350");
+        add(c, "left:640px;top:900px;width:200px;height:330px;border-radius:40px 40px 0 0;background:#3b4350");
+        makeChar(c, "d-him", "him", 200, 1290, 0.95, 4);
+        makeChar(c, "d-her", "her", 650, 1300, 0.9, 4);
+        // téléphones + lueurs
+        for (const id of ["d-him", "d-her"]) {
+          const g = $(`#${id} .ghost g`);
+          g.insertAdjacentHTML("beforeend", `<g class="phone"><rect x="84" y="226" width="34" height="58" rx="6" fill="#0b0b0e"/><rect class="scr" x="87" y="230" width="28" height="50" rx="4" fill="#8fc6ff"/><rect class="scroll" x="90" y="236" width="22" height="5" rx="2" fill="#d9eeff"/><rect class="scroll" x="90" y="250" width="16" height="5" rx="2" fill="#d9eeff"/><rect class="scroll" x="90" y="264" width="20" height="5" rx="2" fill="#d9eeff"/></g>`);
+          add(`#${id} .float`, "left:-50px;top:110px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle at 50% 55%,rgba(120,180,255,.55),rgba(80,140,255,.15) 40%,rgba(80,140,255,0) 68%);mix-blend-mode:screen", "", "abs glow");
+          setPose(`#${id}`, "head", { x: 0, y: 22, rotation: 0 });
+          setPose(`#${id}`, "arm-f", { rotation: -40 });
+          setPose(`#${id}`, "arm-b", { rotation: 40 });
+        }
+        // table et nappe (devant les personnages)
+        add(c, "left:120px;top:1230px;width:840px;height:28px;border-radius:12px;background:linear-gradient(180deg,#56606e,#454e5b);z-index:9;box-shadow:0 10px 20px rgba(0,0,0,.4)");
+        add(c, "left:130px;top:1256px;width:820px;height:250px;border-radius:0 0 30px 30px;background:linear-gradient(180deg,#3f4855,#333b47);z-index:9");
+        add(c, "left:120px;top:1100px;width:840px;height:200px;z-index:10;background:radial-gradient(ellipse 30% 40% at 30% 70%,rgba(110,170,255,.2),transparent),radial-gradient(ellipse 30% 40% at 70% 70%,rgba(110,170,255,.2),transparent);mix-blend-mode:screen");
+      })();
+
+      // ================= S4 : lit vu du dessus =================
+      (() => {
+        const c = "#s4 .cam";
+        add(c, "left:-200px;top:-200px;width:1480px;height:2320px;background:radial-gradient(ellipse at 50% 50%,#2b3344,#141821 70%)");
+        add(c, "left:-200px;top:-200px;width:1480px;height:2320px;opacity:.18;background:repeating-linear-gradient(90deg,transparent 0 118px,#0a0c11 118px 122px)");
+        // lit
+        add(c, "left:170px;top:360px;width:740px;height:150px;border-radius:24px;background:linear-gradient(180deg,#4a5162,#3a4050);box-shadow:0 30px 60px rgba(0,0,0,.5)");
+        add(c, "left:190px;top:480px;width:700px;height:1080px;border-radius:30px;background:#c9d0db;box-shadow:0 40px 80px rgba(0,0,0,.6)");
+        add(c, "left:220px;top:520px;width:300px;height:150px;border-radius:40px;background:linear-gradient(160deg,#e3e8ef,#b8c0cc)");
+        add(c, "left:560px;top:520px;width:300px;height:150px;border-radius:40px;background:linear-gradient(160deg,#e3e8ef,#b8c0cc)");
+        // silhouettes couchées, dos à dos
+        const lying = (x, flip) => add(c, `left:${x}px;top:600px;width:260px;height:520px`, `
+          <svg viewBox="0 0 260 520" width="260" height="520" style="transform:scaleX(${flip}) rotate(-8deg) scale(.88)"><g filter="url(#fSoft)">
+            <circle cx="120" cy="90" r="58" fill="url(#gGhost)"/>
+            <path d="M80 150 C40 200 40 300 70 380 C90 440 150 480 190 470 C220 400 210 300 190 240 C176 190 160 160 130 150 Z" fill="url(#gGhost)"/>
+            <path d="M80 190 C50 230 46 270 60 300" stroke="#0b0b0e" stroke-width="26" stroke-linecap="round" fill="none"/>
+          </g></svg>`, "abs lyer");
+        lying(165, 1);
+        lying(665, -1);
+        // couette
+        add(c, "left:190px;top:930px;width:700px;height:630px;border-radius:40px 40px 30px 30px;background:linear-gradient(180deg,#9aa5b6,#7d889a);box-shadow:0 -14px 30px rgba(0,0,0,.25)");
+        add(c, "left:250px;top:960px;width:180px;height:400px;border-radius:90px;background:rgba(255,255,255,.08)");
+        add(c, "left:650px;top:960px;width:180px;height:400px;border-radius:90px;background:rgba(255,255,255,.08)");
+        add(c, "left:518px;top:940px;width:44px;height:600px;border-radius:22px;background:rgba(0,0,0,.08)");
+        // lumière de lune
+        add(c, "left:-100px;top:200px;width:1300px;height:1500px;opacity:.25;mix-blend-mode:screen;background:linear-gradient(115deg,transparent 30%,rgba(170,195,235,.8) 45%,transparent 60%)");
+      })();
+
+      // ================= S5 : le salon, gris puis couleur =================
+      function livingRoom(color) {
+        const P = color
+          ? { wallA: "#f3e4cf", wallB: "#e8d2b6", floorA: "#c6905f", floorB: "#9e6a42", plank: "#8e5e3a", sky: "linear-gradient(180deg,#ffe6b0,#ffc98a 70%,#ffb978)", frame: "#e9d8c1",
+              sofa: "#dcc6a6", sofaD: "#c7ae8c", cushA: "#c9714f", cushB: "#8f9e6b", rug: "#e9cbb4", rugB: "#c98f72", table: "#b07a4c", tableD: "#8a5b37",
+              pot: "#c46e4e", leaf: "#6f9a5b", leafD: "#557d45", art1: "#e3a868", art2: "#c9714f", art3: "#8f9e6b", lamp: "#d4a85e", door: "#d9c1a0", doorIn: "#ffe2b3", base: "#e2ccb0" }
+          : { wallA: "#4f5761", wallB: "#454c56", floorA: "#3a4048", floorB: "#262a30", plank: "#2a2f35", sky: "linear-gradient(180deg,#a9b9c8,#8597a8)", frame: "#646d77",
+              sofa: "#666e78", sofaD: "#585f69", cushA: "#727a84", cushB: "#5f6771", rug: "#4a5159", rugB: "#41474f", table: "#5b626b", tableD: "#4b5159",
+              pot: "#5c636c", leaf: "#59616a", leafD: "#4c535b", art1: "#6b737d", art2: "#5f6771", art3: "#737b85", lamp: "#6b737c", door: "#59616b", doorIn: "#2a2f35", base: "#3f464f" };
+        const r = document.createElement("div");
+        r.className = "abs lr " + (color ? "lr-color" : "lr-gray");
+        r.style.cssText = "left:0;top:0;width:1080px;height:1920px";
+        add(r, `left:0;top:0;width:1080px;height:1310px;background:linear-gradient(180deg,${P.wallA},${P.wallB})`);
+        add(r, `left:0;top:1310px;width:1080px;height:610px;background:linear-gradient(180deg,${P.floorA},${P.floorB})`);
+        add(r, `left:0;top:1310px;width:1080px;height:610px;opacity:.35;background:repeating-linear-gradient(90deg,transparent 0 134px,${P.plank} 134px 138px)`);
+        add(r, `left:0;top:1292px;width:1080px;height:22px;background:${P.base}`);
+        // fenêtre
+        add(r, `left:40px;top:360px;width:300px;height:620px;border-radius:150px 150px 10px 10px;background:${P.frame};box-shadow:0 18px 40px rgba(0,0,0,.25)`);
+        add(r, `left:58px;top:378px;width:264px;height:584px;border-radius:132px 132px 4px 4px;background:${P.sky}`);
+        if (color) add(r, "left:110px;top:470px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,#fff8e0,#ffe2a0 50%,rgba(255,220,150,0) 72%)");
+        add(r, `left:182px;top:378px;width:14px;height:584px;background:${P.frame}`);
+        add(r, `left:58px;top:640px;width:264px;height:14px;background:${P.frame}`);
+        // tableaux (sans texte)
+        add(r, `left:460px;top:520px;width:180px;height:230px;border-radius:6px;background:${P.wallA};box-shadow:0 0 0 10px ${P.frame},0 16px 30px rgba(0,0,0,.25)`,
+          `<div style="position:absolute;left:30px;top:40px;width:110px;height:110px;border-radius:50%;background:${P.art1}"></div><div style="position:absolute;left:60px;top:110px;width:90px;height:90px;border-radius:50%;background:${P.art2};opacity:.85"></div>`);
+        add(r, `left:690px;top:580px;width:130px;height:170px;border-radius:6px;background:${P.wallB};box-shadow:0 0 0 10px ${P.frame},0 16px 30px rgba(0,0,0,.25)`,
+          `<div style="position:absolute;left:20px;top:90px;width:90px;height:60px;border-radius:60px 60px 0 0;background:${P.art3}"></div>`);
+        // porte (à droite)
+        add(r, `left:870px;top:640px;width:200px;height:670px;border-radius:12px 12px 0 0;background:${P.frame};box-shadow:0 18px 40px rgba(0,0,0,.25)`);
+        add(r, `left:886px;top:656px;width:168px;height:654px;background:${P.doorIn}`);
+        add(r, `left:886px;top:656px;width:168px;height:654px;perspective:1400px`,
+          `<div class="lr-door" style="position:absolute;inset:0;transform-origin:100% 50%;background:repeating-linear-gradient(90deg,${P.door} 0 52px,${P.frame} 52px 56px);box-shadow:inset 0 0 0 8px ${P.frame}"><div style="position:absolute;left:18px;top:330px;width:14px;height:40px;border-radius:7px;background:${P.lamp}"></div></div>`);
+        // canapé
+        add(r, `left:380px;top:1010px;width:470px;height:150px;border-radius:50px 50px 10px 10px;background:linear-gradient(180deg,${P.sofa},${P.sofaD})`);
+        add(r, `left:360px;top:1130px;width:510px;height:170px;border-radius:30px;background:linear-gradient(180deg,${P.sofa},${P.sofaD});box-shadow:0 22px 40px rgba(0,0,0,.25)`);
+        add(r, `left:340px;top:1080px;width:70px;height:200px;border-radius:35px;background:${P.sofaD}`);
+        add(r, `left:820px;top:1080px;width:70px;height:200px;border-radius:35px;background:${P.sofaD}`);
+        add(r, `left:430px;top:1040px;width:120px;height:110px;border-radius:30px;background:${P.cushA};transform:rotate(-8deg)`);
+        add(r, `left:690px;top:1040px;width:110px;height:105px;border-radius:30px;background:${P.cushB};transform:rotate(7deg)`);
+        // plante
+        add(r, `left:20px;top:1150px;width:120px;height:150px;border-radius:12px 12px 40px 40px;background:${P.pot}`);
+        for (let i = 0; i < 7; i++) {
+          const a = -70 + i * 23;
+          add(r, `left:60px;top:900px;width:46px;height:260px;border-radius:50%;background:${i % 2 ? P.leaf : P.leafD};transform-origin:50% 100%;transform:rotate(${a}deg)`);
+        }
+        // tapis
+        add(r, `left:110px;top:1440px;width:880px;height:300px;border-radius:50%;background:${P.rug};box-shadow:inset 0 0 0 18px ${P.rugB}`);
+        // table ronde (le livre est posé dessus)
+        add(r, `left:250px;top:1290px;width:40px;height:250px;background:linear-gradient(90deg,${P.tableD},${P.table},${P.tableD});border-radius:8px`);
+        add(r, `left:180px;top:1520px;width:180px;height:30px;border-radius:50%;background:${P.tableD}`);
+        add(r, `left:110px;top:1250px;width:320px;height:70px;border-radius:50%;background:${P.tableD};box-shadow:0 18px 30px rgba(0,0,0,.3)`);
+        add(r, `left:110px;top:1240px;width:320px;height:64px;border-radius:50%;background:radial-gradient(ellipse at 40% 40%,${P.table},${P.tableD})`);
+        if (color) {
+          // rayons de soleil
+          add(r, "left:-200px;top:300px;width:1500px;height:1700px;opacity:.38;mix-blend-mode:screen;background:linear-gradient(118deg,transparent 18%,rgba(255,236,190,.9) 26%,transparent 34%,transparent 40%,rgba(255,230,180,.7) 46%,transparent 54%)");
+          add(r, "left:0;top:0;width:1080px;height:1920px;mix-blend-mode:soft-light;background:radial-gradient(ellipse at 20% 30%,rgba(255,210,140,.6),rgba(255,200,140,0) 60%)");
+        } else {
+          add(r, "left:0;top:0;width:1080px;height:1920px;background:rgba(70,95,130,.18);mix-blend-mode:multiply");
+        }
+        return r;
+      }
+      (() => {
+        const c = $("#s5 .cam");
+        const bg = add(c, "left:0;top:0;width:1080px;height:1920px", "", "abs lr-wrap");
+        bg.appendChild(livingRoom(false));
+        const col = livingRoom(true);
+        bg.appendChild(col);
+        // masque aquarelle : plusieurs taches qui s'étendent depuis le livre
+        const blobs = [[270, 1250, 0], [150, 1000, 1], [480, 1150, 2], [320, 640, 3], [800, 900, 4], [700, 1650, 5], [960, 400, 6], [540, 60, 7], [80, 120, 8]];
+        const layers = blobs.map(([x, y, i]) => `radial-gradient(circle at ${x}px ${y}px, #000 calc(var(--r${i}) - 180px), rgba(0,0,0,.6) calc(var(--r${i}) - 90px), transparent var(--r${i}))`).join(",");
+        col.style.webkitMaskImage = layers;
+        col.style.maskImage = layers;
+        blobs.forEach(([, , i]) => col.style.setProperty(`--r${i}`, "0px"));
+
+        // livre posé sur la table (seul objet en couleur)
+        add(c, "left:192px;top:1170px;width:150px;height:225px;perspective:900px;z-index:7", `
+          <div id="tableBook" class="book3d" style="width:150px;height:225px;transform:rotateX(66deg) rotateZ(-14deg)">
+            <div class="pages" style="left:4px;top:6px;width:150px;height:225px;border-radius:3px;background:#efe3cf;box-shadow:0 0 0 1px #d8c6aa"></div>
+            <div class="face" style="transform:translateZ(8px)"><img src="${COVER}" alt="" /><div class="hinge"></div></div>
+          </div>`, "abs");
+        add(c, "left:120px;top:1120px;width:300px;height:300px;border-radius:50%;opacity:0;z-index:6;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,215,150,.9),rgba(255,200,120,.25) 40%,rgba(255,200,120,0) 70%)", "", "abs bookGlow");
+        // vague dorée
+        add(c, "left:267px;top:1250px;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;opacity:0;z-index:12;border:3px solid rgba(255,225,170,.45);box-shadow:0 0 30px 10px rgba(255,210,140,.35), inset 0 0 20px rgba(255,220,160,.35)", "", "abs wave w1");
+        add(c, "left:267px;top:1250px;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;opacity:0;z-index:12;border:2px solid rgba(255,235,190,.35);box-shadow:0 0 24px 6px rgba(255,220,160,.3)", "", "abs wave w2");
+        // poussières dorées
+        for (let i = 0; i < 26; i++) {
+          const s = 4 + rnd() * 8;
+          add(c, `left:${80 + rnd() * 920}px;top:${500 + rnd() * 1200}px;width:${s}px;height:${s}px;border-radius:50%;opacity:0;z-index:11;background:radial-gradient(circle,#fff4d8,rgba(255,220,150,0) 70%)`, "", "abs mote");
+        }
+        makeChar(c, "l-her", "her", -260, 1360, 0.95, 8);
+        makeChar(c, "l-him", "him", 860, 1330, 0.95, 5);
+        setPose("#l-her", "head", SLUMP);
+        setPose("#l-him", "head", SLUMP);
+        gsap.set("#l-him .float", { scaleX: -1 });
+        gsap.set("#l-him", { opacity: 0 });
+        add(c, "left:0;top:0;width:1080px;height:1920px;opacity:0;z-index:13;mix-blend-mode:screen;background:radial-gradient(circle at 660px 1130px,rgba(255,214,150,.45),rgba(255,200,130,.12) 35%,rgba(255,200,130,0) 60%)", "", "abs bloom");
+      })();
+
+      // ================= S7 : le livre =================
+      (() => {
+        const c = $("#s7 .cam");
+        add(c, "left:-100px;top:-100px;width:1280px;height:2120px;background:radial-gradient(ellipse at 50% 40%,#f6dfba,#d9a676 55%,#8a5432 100%)");
+        const bk = [[180, 420, 160, "#fff2d6"], [860, 360, 220, "#ffe1ad"], [920, 1080, 140, "#ffd9a0"], [120, 1100, 200, "#ffe8c4"], [520, 220, 120, "#fff0d0"], [760, 760, 90, "#fff6e2"], [300, 780, 80, "#ffe6bc"]];
+        bk.forEach(([x, y, s, col]) => add(c, `left:${x - s / 2}px;top:${y - s / 2}px;width:${s}px;height:${s}px;border-radius:50%;opacity:.35;filter:blur(6px);background:radial-gradient(circle,${col},rgba(255,255,255,0) 70%)`, "", "abs bokeh"));
+        // table
+        add(c, "left:-100px;top:1380px;width:1280px;height:640px;background:linear-gradient(180deg,#b07a4c,#7d4f2f 70%,#5e3a22)");
+        add(c, "left:-100px;top:1380px;width:1280px;height:640px;opacity:.15;background:repeating-linear-gradient(176deg,transparent 0 40px,#3b2414 40px 42px)");
+        add(c, "left:-100px;top:1376px;width:1280px;height:10px;background:linear-gradient(180deg,#d39c69,#b07a4c)");
+        // ombre
+        add(c, "left:230px;top:1350px;width:680px;height:90px;border-radius:50%;background:radial-gradient(ellipse,rgba(40,20,10,.55),rgba(40,20,10,0) 70%)");
+        add(c, "left:240px;top:460px;width:600px;height:902px;perspective:2200px", `
+          <div id="prodBook" class="book3d" style="width:600px;height:902px;transform-origin:50% 100%">
+            <div class="pages" style="left:578px;width:44px;transform:rotateY(90deg)"></div>
+            <div class="pages" style="left:0;top:880px;width:600px;height:44px;transform:rotateX(-90deg)"></div>
+            <div class="face" style="transform:translateZ(22px);box-shadow:0 30px 60px rgba(60,30,10,.35)">
+              <img src="${COVER}" alt="" />
+              <div class="hinge"></div>
+              <div class="gloss" style="position:absolute;inset:0;overflow:hidden;border-radius:3px 6px 6px 3px"><div class="sweep" style="position:absolute;top:-10%;left:-60%;width:40%;height:120%;opacity:.22;mix-blend-mode:soft-light;background:linear-gradient(100deg,transparent,#fff 50%,transparent);transform:rotate(8deg)"></div></div>
+            </div>
+          </div>`);
+        add(c, "left:0;top:0;width:1080px;height:1920px;mix-blend-mode:soft-light;opacity:.5;background:radial-gradient(ellipse at 70% 20%,rgba(255,230,180,.8),transparent 55%)");
+      })();
+
+      // ================= TIMELINE =================
+      const tl = gsap.timeline({ paused: true });
+
+      // fondu d'ouverture / fermeture
+      tl.fromTo("#black", { opacity: 1 }, { opacity: 0, duration: 0.9, ease: "power1.out" }, 0);
+      tl.to("#black", { opacity: 1, duration: 1.0, ease: "power1.in" }, 29.0);
+
+      // grain (déterministe)
+      for (let t = 0; t < DUR; t += 1 / 12) tl.set("#grain", { x: Math.round(rnd() * 100 - 50), y: Math.round(rnd() * 100 - 50) }, t);
+
+      // flottement léger de tous les personnages
+      document.querySelectorAll(".char .float").forEach((f, i) => {
+        const d = 1.7 + (i % 3) * 0.25;
+        tl.fromTo(f, { y: 0 }, { y: -10, duration: d, ease: "sine.inOut", yoyo: true, repeat: Math.ceil(DUR / d) }, 0);
+      });
+      tl.fromTo(".char .shadow", { scaleX: 1 }, { scaleX: 0.88, opacity: 0.7, duration: 1.8, ease: "sine.inOut", yoyo: true, repeat: 16 }, 0);
+
+      // ---- S1 cuisine (0-5)
+      tl.fromTo("#s1 .cam", { x: 0 }, { x: -640, duration: 5.4, ease: "sine.inOut" }, 0);
+      tl.fromTo("#k-her", { x: 0 }, { x: 1000, duration: 5.4, ease: "none" }, 0);
+      tl.fromTo("#k-him", { x: 0 }, { x: -1240, duration: 5.4, ease: "none" }, 0);
+      pose(tl, "#k-her", "head", { rotation: 8, x: 6, duration: 0.6, ease: "sine.inOut" }, 2.4);
+      pose(tl, "#k-her", "head", { ...SLUMP, duration: 0.8, ease: "sine.inOut" }, 3.0);
+      pose(tl, "#k-him", "head", { rotation: 10, duration: 0.5, ease: "sine.inOut" }, 2.5);
+      pose(tl, "#k-him", "head", { ...SLUMP, duration: 0.8, ease: "sine.inOut" }, 3.0);
+
+      // ---- S2 départ (5-9)
+      tl.fromTo("#s2", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "none" }, 5.0);
+      pose(tl, "#h-him", "arm-b", { rotation: -48, duration: 0.5, ease: "sine.inOut" }, 5.2);
+      tl.set("#keysBowl", { opacity: 0 }, 5.72);
+      tl.set("#h-him .keys", { opacity: 1 }, 5.72);
+      pose(tl, "#h-him", "arm-b", { rotation: 0, duration: 0.6, ease: "sine.inOut" }, 5.8);
+      tl.to("#h-him .float", { scaleX: 1, duration: 0.35, ease: "sine.inOut" }, 6.25);
+      tl.to("#h-him", { x: 300, duration: 1.4, ease: "sine.inOut" }, 6.35);
+      tl.to("#door2", { rotationY: -78, duration: 0.6, ease: "power2.out" }, 6.95);
+      tl.to("#h-him", { scale: 0.86, y: -16, opacity: 0, duration: 0.55, ease: "power1.in" }, 7.55);
+      tl.to("#door2", { rotationY: 0, duration: 0.5, ease: "power2.in" }, 7.95);
+      tl.to("#s2 .cam", { scale: 3.4, transformOrigin: "710px 985px", duration: 0.55, ease: "power2.in" }, 8.45);
+      tl.fromTo("#wipe", { opacity: 0, x: 0 }, { opacity: 1, duration: 0.12, ease: "none" }, 8.86);
+      tl.to("#wipe", { x: -1260, duration: 0.5, ease: "power2.inOut" }, 9.0);
+
+      // ---- S3 table (9-13)
+      tl.fromTo("#s3 .cam", { scale: 1 }, { scale: 1.08, transformOrigin: "540px 1150px", duration: 4.5, ease: "none" }, 8.85);
+      for (let k = 0; k <= 4; k++) tl.set("#secHand", { rotation: 90 + k * 6 }, 9 + k);
+      tl.fromTo("#s3 .glow", { opacity: 0.85 }, { opacity: 1, duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 6 }, 9);
+      ["d-him", "d-her"].forEach((id, j) => {
+        for (let k = 0; k < 6; k++) tl.to(`#${id} .scroll`, { y: -((k + 1) * 6) % 18, duration: 0.25, ease: "power1.out" }, 9.3 + k * 0.7 + j * 0.35);
+        pose(tl, `#${id}`, "arm-b", { rotation: 37, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 3 }, 9 + j * 0.4);
+      });
+      tl.to("#s3", { opacity: 0, duration: 0.35, ease: "none" }, 13.0);
+
+      // ---- S4 lit (13-17)
+      tl.fromTo("#s4", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "none" }, 13.0);
+      tl.fromTo("#s4 .cam", { scale: 1.32, rotation: 3 }, { scale: 0.9, rotation: 0, transformOrigin: "540px 960px", duration: 4.4, ease: "sine.inOut" }, 13.0);
+      tl.fromTo("#s4 .lyer", { scale: 1 }, { scale: 1.015, duration: 1.4, ease: "sine.inOut", yoyo: true, repeat: 3 }, 13.0);
+      tl.to("#s4", { opacity: 0, duration: 0.4, ease: "none" }, 17.0);
+
+      // ---- S5 salon (17-27)
+      tl.fromTo("#s5", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "none" }, 17.0);
+      tl.fromTo("#s5 .cam", { scale: 1.06 }, { scale: 1.0, transformOrigin: "300px 1200px", duration: 3, ease: "sine.out" }, 17.0);
+      tl.to("#l-her", { x: 360, duration: 1.4, ease: "power1.out" }, 17.2);
+      pose(tl, "#l-her", "head", { x: 10, y: 20, rotation: 24, duration: 0.5, ease: "sine.inOut" }, 18.2);
+      pose(tl, "#l-her", "arm-b", { rotation: -62, duration: 0.6, ease: "sine.inOut" }, 18.4);
+      tl.to("#s5 .bookGlow", { opacity: 0.6, duration: 0.6, ease: "sine.in" }, 18.4);
+      // contact : 19.0
+      tl.to("#s5 .bookGlow", { opacity: 1, scale: 1.6, duration: 0.4, ease: "power2.out" }, 19.0);
+      tl.fromTo("#s5 .w1", { scale: 1, opacity: 1 }, { scale: 45, opacity: 0, duration: 1.8, ease: "power2.out" }, 19.0);
+      tl.fromTo("#s5 .w2", { scale: 1, opacity: 0.9 }, { scale: 38, opacity: 0, duration: 2.2, ease: "power2.out" }, 19.15);
+      const lrc = $("#s5 .lr-color");
+      [[0, 19.0, 1700, 2.6], [1, 19.25, 1200, 2.4], [2, 19.35, 1200, 2.3], [3, 19.6, 1200, 2.3], [4, 19.8, 1400, 2.2], [5, 19.7, 1200, 2.2], [6, 20.1, 1300, 1.9], [7, 20.0, 1300, 2.0], [8, 20.1, 1200, 1.9]].forEach(([i, t, r, d]) => {
+        tl.fromTo(lrc, { [`--r${i}`]: "0px" }, { [`--r${i}`]: r + "px", duration: d, ease: "power1.inOut" }, t);
+      });
+      tl.to("#s5 .bookGlow", { opacity: 0.55, scale: 1.2, duration: 1.4, ease: "sine.inOut" }, 19.5);
+      pose(tl, "#l-her", "arm-b", { rotation: 0, duration: 1.0, ease: "sine.inOut" }, 20.0);
+      tl.to("#l-her .aura", { opacity: 0.6, duration: 1.5, ease: "sine.inOut" }, 20.0);
+      document.querySelectorAll("#s5 .mote").forEach((m, i) => {
+        tl.fromTo(m, { opacity: 0, y: 0 }, { opacity: 0.9, y: -60, duration: 1.2, ease: "sine.out" }, 19.4 + (i % 9) * 0.25);
+        tl.to(m, { y: -260 - (i % 5) * 30, x: (i % 2 ? 1 : -1) * 30, opacity: 0.35, duration: 6, ease: "none" }, 20.6 + (i % 9) * 0.25);
+      });
+      // retour de l'homme (22-27)
+      tl.to("#s5 .lr-door", { rotationY: 80, duration: 0.6, ease: "power2.out" }, 22.1);
+      tl.fromTo("#l-him", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 0.95, duration: 0.6, ease: "sine.out" }, 22.35);
+      tl.to("#l-him", { x: -120, duration: 1.2, ease: "sine.inOut" }, 22.6);
+      tl.to("#s5 .lr-door", { rotationY: 0, duration: 0.8, ease: "sine.inOut" }, 23.4);
+      tl.to("#l-him .aura", { opacity: 0.7, duration: 1.0, ease: "sine.inOut" }, 22.8);
+      tl.to("#l-him .ghost g", { opacity: 0.82, duration: 1.0, ease: "sine.inOut" }, 22.8);
+      tl.to("#l-him .ghost g", { attr: { filter: "url(#fSofter)" }, duration: 0.01 }, 23.0);
+      pose(tl, "#l-her", "head", { x: 0, y: -2, rotation: -4, duration: 0.7, ease: "sine.inOut" }, 23.4);
+      pose(tl, "#l-him", "head", { x: 0, y: -2, rotation: -4, duration: 0.7, ease: "sine.inOut" }, 23.55);
+      tl.to("#l-her", { x: 560, duration: 1.3, ease: "sine.inOut" }, 24.1);
+      tl.to("#l-him", { x: -290, duration: 1.3, ease: "sine.inOut" }, 24.1);
+      // transformation en personnages colorés
+      tl.to(["#l-her .ghost", "#l-him .ghost"], { opacity: 0, duration: 1.0, ease: "sine.inOut" }, 25.0);
+      tl.to(["#l-her .color", "#l-him .color"], { opacity: 1, duration: 1.0, ease: "sine.inOut" }, 25.0);
+      tl.to(["#l-her .aura", "#l-him .aura"], { opacity: 0.6, scale: 1.15, duration: 0.8, ease: "sine.out" }, 24.9);
+      // étreinte
+      tl.to("#l-her", { x: 640, duration: 0.8, ease: "sine.inOut" }, 25.4);
+      tl.to("#l-him", { x: -360, duration: 0.8, ease: "sine.inOut" }, 25.4);
+      pose(tl, "#l-her", "arm-b", { rotation: -112, duration: 0.8, ease: "sine.inOut" }, 25.5);
+      pose(tl, "#l-her", "arm-f", { rotation: -70, duration: 0.8, ease: "sine.inOut" }, 25.6);
+      pose(tl, "#l-him", "arm-b", { rotation: -100, duration: 0.8, ease: "sine.inOut" }, 25.55);
+      pose(tl, "#l-him", "arm-f", { rotation: -62, duration: 0.8, ease: "sine.inOut" }, 25.65);
+      pose(tl, "#l-her", "head", { x: 8, y: 4, rotation: 10, duration: 0.8, ease: "sine.inOut" }, 25.7);
+      pose(tl, "#l-him", "head", { x: 8, y: 2, rotation: 8, duration: 0.8, ease: "sine.inOut" }, 25.75);
+      // caméra qui tourne autour
+      tl.to("#s5 .cam", { scale: 1.42, x: -110, y: -60, transformOrigin: "660px 1150px", duration: 2.6, ease: "sine.inOut" }, 24.9);
+      tl.to("#s5 .lr-wrap", { x: 70, duration: 2.6, ease: "sine.inOut" }, 24.9);
+      tl.to(["#l-her .float", "#l-him .float"], { rotationY: 14, duration: 2.6, ease: "sine.inOut" }, 24.9);
+      tl.to("#s5 .bloom", { opacity: 0.8, duration: 1.6, ease: "sine.inOut" }, 25.0);
+      tl.to("#s5", { opacity: 0, duration: 0.45, ease: "none" }, 27.2);
+
+      // ---- S7 produit (27-30)
+      tl.fromTo("#s7", { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "none" }, 27.2);
+      tl.fromTo("#s7 .cam", { scale: 0.97 }, { scale: 1.1, transformOrigin: "540px 920px", duration: 2.8, ease: "power1.out" }, 27.2);
+      tl.fromTo("#prodBook", { rotationY: -24, rotationX: 4 }, { rotationY: -14, rotationX: 2, duration: 2.8, ease: "sine.out" }, 27.2);
+      tl.fromTo("#s7 .sweep", { x: 0 }, { x: 1100, duration: 1.6, ease: "sine.inOut" }, 27.7);
+      tl.fromTo("#s7 .bokeh", { y: 0 }, { y: -40, duration: 2.8, ease: "none" }, 27.2);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
