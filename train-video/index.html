@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --sky-top: #5fa8e8;
+        --sky-bottom: #fde2b8;
+        --ground: #6fae4f;
+        --ink: #1f2a33;
+        --font-display: "Trebuchet MS", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0; width: 1920px; height: 1080px; overflow: hidden;
+        background: var(--sky-top);
+      }
+      #root {
+        position: relative; width: 1920px; height: 1080px; overflow: hidden;
+        background: linear-gradient(180deg, var(--sky-top) 0%, #a9d2f2 45%, var(--sky-bottom) 72%);
+        font-family: var(--font-display);
+      }
+      .layer { position: absolute; left: 0; top: 0; }
+      #sun {
+        position: absolute; left: 1420px; top: 120px; width: 170px; height: 170px; border-radius: 50%;
+        background: radial-gradient(circle, #fff6c9 0%, #ffd65a 55%, #ffb83d 100%);
+        box-shadow: 0 0 120px 40px rgba(255, 214, 90, 0.45);
+      }
+      .cloud {
+        position: absolute; background: #fff; border-radius: 60px; opacity: 0.92;
+      }
+      .cloud::before, .cloud::after {
+        content: ""; position: absolute; background: #fff; border-radius: 50%;
+      }
+      .cloud::before { width: 55%; height: 170%; left: 12%; top: -85%; }
+      .cloud::after { width: 40%; height: 130%; left: 50%; top: -55%; }
+
+      #ground {
+        position: absolute; left: 0; top: 760px; width: 1920px; height: 320px;
+        background: linear-gradient(180deg, #7dbb58 0%, var(--ground) 40%, #5a9640 100%);
+      }
+      #ballast {
+        position: absolute; left: 0; top: 880px; width: 1920px; height: 46px;
+        background: linear-gradient(180deg, #9a8f84, #7b7066);
+      }
+      #sleepers {
+        position: absolute; left: 0; top: 884px; width: 2400px; height: 30px;
+        background: repeating-linear-gradient(90deg, #5b3a24 0 26px, transparent 26px 60px);
+      }
+      .rail {
+        position: absolute; left: 0; width: 1920px; height: 8px;
+        background: linear-gradient(180deg, #e3e6ea, #8b939b);
+      }
+
+      /* ---- Train ---- */
+      #train { position: absolute; left: 0; top: 0; width: 1960px; height: 1080px; }
+      .car {
+        position: absolute; top: 640px; height: 210px; border-radius: 18px 18px 8px 8px;
+        border: 5px solid rgba(0,0,0,0.25);
+      }
+      .car .roof {
+        position: absolute; left: -12px; right: -12px; top: -26px; height: 30px;
+        border-radius: 16px 16px 4px 4px; background: #3a3f48;
+      }
+      .car .stripe {
+        position: absolute; left: 0; right: 0; top: 150px; height: 14px; background: rgba(255,255,255,0.75);
+      }
+      .window {
+        position: absolute; top: 30px; width: 96px; height: 92px; border-radius: 12px;
+        background: linear-gradient(160deg, #dff3ff 0%, #a8d6f0 100%);
+        border: 5px solid #2b2f36; overflow: hidden;
+      }
+      .window::after {
+        content: ""; position: absolute; left: 8px; top: 6px; width: 18px; height: 60px;
+        background: rgba(255,255,255,0.55); transform: skewX(-18deg);
+      }
+      .person { position: absolute; left: 50%; bottom: -8px; width: 60px; height: 84px; margin-left: -30px; }
+      .person .body {
+        position: absolute; left: 4px; bottom: 0; width: 52px; height: 38px; border-radius: 24px 24px 4px 4px;
+      }
+      .person .head {
+        position: absolute; left: 13px; top: 6px; width: 34px; height: 38px; border-radius: 50%;
+      }
+      .person .hair { position: absolute; left: 11px; top: 2px; width: 38px; height: 20px; border-radius: 20px 20px 6px 6px; }
+      .person .eye { position: absolute; top: 22px; width: 5px; height: 5px; border-radius: 50%; background: #1b1b1b; }
+      .person .smile {
+        position: absolute; left: 23px; top: 31px; width: 14px; height: 6px;
+        border-bottom: 3px solid #6b2d1d; border-radius: 0 0 10px 10px;
+      }
+      .person .hat { position: absolute; left: 9px; top: -4px; width: 42px; height: 16px; border-radius: 8px 8px 2px 2px; }
+      .person .hat::after { content: ""; position: absolute; left: -6px; right: -6px; bottom: -3px; height: 5px; border-radius: 3px; background: inherit; }
+
+      .loco-body { position: absolute; }
+      .wheel { position: absolute; width: 74px; height: 74px; }
+      .coupler { position: absolute; top: 800px; height: 12px; background: #2b2f36; }
+
+      .puff {
+        position: absolute; width: 70px; height: 70px; border-radius: 50%;
+        background: radial-gradient(circle at 40% 40%, #ffffff 0%, #e7ebef 60%, rgba(220,226,232,0.0) 72%);
+      }
+      #vignette {
+        position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,0.22) 100%);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+      <div id="sun"></div>
+      <div id="clouds" class="layer" style="width: 3840px; height: 400px"></div>
+
+      <svg id="mountains" class="layer" width="3840" height="1080" viewBox="0 0 3840 1080">
+        <path id="mtn-far" fill="#9bb7d4" d="" />
+        <path id="mtn-near" fill="#7f9fbf" d="" />
+      </svg>
+      <svg id="hills" class="layer" width="3840" height="1080" viewBox="0 0 3840 1080">
+        <path id="hill-path" fill="#8cc463" d="" />
+      </svg>
+      <div id="ground"></div>
+      <svg id="trees" class="layer" width="3840" height="1080" viewBox="0 0 3840 1080"></svg>
+
+      <div id="ballast"></div>
+      <div id="sleepers"></div>
+      <div class="rail" style="top: 876px"></div>
+
+      <div id="train"></div>
+
+      <svg id="foreground" class="layer" width="3840" height="1080" viewBox="0 0 3840 1080"></svg>
+      <div id="vignette"></div>
+    </div>
+
+    <script>
+      // ---------- deterministic random ----------
+      let seed = 7;
+      const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+      const pick = (a) => a[Math.floor(rnd() * a.length)];
+      const SVGNS = "http://www.w3.org/2000/svg";
+      const svgEl = (tag, attrs) => {
+        const e = document.createElementNS(SVGNS, tag);
+        for (const k in attrs) e.setAttribute(k, attrs[k]);
+        return e;
+      };
+      const DUR = 12;
+
+      // ---------- clouds ----------
+      const clouds = document.getElementById("clouds");
+      const cloudDefs = [[120, 90, 220, 60], [620, 170, 160, 46], [1100, 70, 260, 70], [1600, 200, 180, 50]];
+      for (const half of [0, 1920]) {
+        for (const [x, y, w, h] of cloudDefs) {
+          const c = document.createElement("div");
+          c.className = "cloud";
+          Object.assign(c.style, { left: x + half + "px", top: y + "px", width: w + "px", height: h + "px" });
+          clouds.appendChild(c);
+        }
+      }
+
+      // ---------- periodic ridge paths (period 1920, tiled twice) ----------
+      function ridge(baseY, amps, freqs, phases) {
+        let d = `M0 1080 L0 ${baseY}`;
+        for (let x = 0; x <= 3840; x += 20) {
+          let y = baseY;
+          for (let i = 0; i < amps.length; i++) y -= amps[i] * Math.sin((x / 1920) * Math.PI * 2 * freqs[i] + phases[i]);
+          d += ` L${x} ${y.toFixed(1)}`;
+        }
+        return d + " L3840 1080 Z";
+      }
+      document.getElementById("mtn-far").setAttribute("d", ridge(470, [70, 40, 18], [2, 5, 11], [0.3, 1.2, 2.0]));
+      document.getElementById("mtn-near").setAttribute("d", ridge(560, [60, 30, 14], [3, 7, 13], [1.5, 0.4, 2.6]));
+      document.getElementById("hill-path").setAttribute("d", ridge(700, [35, 18], [4, 9], [0.8, 2.1]));
+
+      // ---------- trees & poles (behind track) ----------
+      const trees = document.getElementById("trees");
+      const treeXs = [];
+      for (let x = 40; x < 1920; x += 120 + rnd() * 180) treeXs.push([x, 0.7 + rnd() * 0.6, pick(["#3f8a3a", "#2f7a35", "#4e9a3f"])]);
+      for (const half of [0, 1920]) {
+        for (const [x, s, col] of treeXs) {
+          const g = svgEl("g", { transform: `translate(${x + half} 790) scale(${s})` });
+          g.appendChild(svgEl("rect", { x: -8, y: -40, width: 16, height: 50, fill: "#6b4428" }));
+          g.appendChild(svgEl("circle", { cx: 0, cy: -80, r: 52, fill: col }));
+          g.appendChild(svgEl("circle", { cx: -30, cy: -55, r: 36, fill: col }));
+          g.appendChild(svgEl("circle", { cx: 30, cy: -58, r: 38, fill: col }));
+          trees.appendChild(g);
+        }
+        for (let x = 200; x < 1920; x += 480) {
+          trees.appendChild(svgEl("rect", { x: x + half, y: 640, width: 10, height: 230, fill: "#5a3b26" }));
+          trees.appendChild(svgEl("rect", { x: x + half - 26, y: 660, width: 62, height: 8, fill: "#5a3b26" }));
+        }
+      }
+
+      // ---------- foreground bushes ----------
+      const fg = document.getElementById("foreground");
+      const bushXs = [];
+      for (let x = 60; x < 1920; x += 260 + rnd() * 320) bushXs.push([x, 0.8 + rnd() * 0.7]);
+      for (const half of [0, 1920]) {
+        for (const [x, s] of bushXs) {
+          const g = svgEl("g", { transform: `translate(${x + half} 1080) scale(${s})` });
+          g.appendChild(svgEl("ellipse", { cx: 0, cy: -30, rx: 80, ry: 55, fill: "#3d7d2f" }));
+          g.appendChild(svgEl("ellipse", { cx: 60, cy: -18, rx: 60, ry: 42, fill: "#4a8f38" }));
+          g.appendChild(svgEl("ellipse", { cx: -55, cy: -14, rx: 55, ry: 38, fill: "#356e29" }));
+          fg.appendChild(g);
+        }
+      }
+
+      // ---------- train ----------
+      const train = document.getElementById("train");
+      const wheels = [];
+      const people = [];
+      const puffs = [];
+
+      function makeWheel(x, size = 74) {
+        const w = document.createElementNS(SVGNS, "svg");
+        w.setAttribute("class", "wheel");
+        w.setAttribute("viewBox", "-40 -40 80 80");
+        Object.assign(w.style, { left: x - size / 2 + "px", top: 850 - size / 2 + "px", width: size + "px", height: size + "px" });
+        w.appendChild(svgEl("circle", { r: 36, fill: "#2b2f36" }));
+        w.appendChild(svgEl("circle", { r: 28, fill: "#c0392b" }));
+        for (let a = 0; a < 6; a++) {
+          const r = (a * Math.PI) / 3;
+          w.appendChild(svgEl("line", { x1: 0, y1: 0, x2: 26 * Math.cos(r), y2: 26 * Math.sin(r), stroke: "#2b2f36", "stroke-width": 5 }));
+        }
+        w.appendChild(svgEl("circle", { r: 8, fill: "#e5c06a" }));
+        train.appendChild(w);
+        wheels.push(w);
+      }
+
+      const skins = ["#f6d2b4", "#e8b08a", "#c68a5e", "#8d5a3b", "#5e3a24"];
+      const hairs = ["#2b1b12", "#6b3e1f", "#d9a441", "#1b1b1b", "#a33a1f", "#cfcfcf"];
+      const shirts = ["#e74c3c", "#3498db", "#9b59b6", "#f1c40f", "#1abc9c", "#e67e22", "#ff7aa8", "#34495e"];
+
+      function makePerson(win) {
+        const p = document.createElement("div");
+        p.className = "person";
+        const skin = pick(skins);
+        p.innerHTML = `
+          <div class="body" style="background:${pick(shirts)}"></div>
+          <div class="head" style="background:${skin}"></div>
+          <div class="hair" style="background:${pick(hairs)}"></div>
+          <div class="eye" style="left:21px"></div>
+          <div class="eye" style="left:34px"></div>
+          <div class="smile"></div>
+          ${rnd() < 0.3 ? `<div class="hat" style="background:${pick(["#2c3e50", "#c0392b", "#16a085", "#8e44ad"])}"></div>` : ""}`;
+        win.appendChild(p);
+        people.push(p);
+      }
+
+      function makeCar(left, width, color, nWindows) {
+        const car = document.createElement("div");
+        car.className = "car";
+        Object.assign(car.style, { left: left + "px", width: width + "px", background: color });
+        car.innerHTML = `<div class="roof"></div><div class="stripe"></div>`;
+        const gap = (width - nWindows * 96) / (nWindows + 1);
+        for (let i = 0; i < nWindows; i++) {
+          const win = document.createElement("div");
+          win.className = "window";
+          win.style.left = gap + i * (96 + gap) - 5 + "px";
+          car.appendChild(win);
+          if (rnd() < 0.88) makePerson(win);
+        }
+        train.appendChild(car);
+        makeWheel(left + 70);
+        makeWheel(left + 160);
+        makeWheel(left + width - 160);
+        makeWheel(left + width - 70);
+      }
+
+      // carriages (left -> right), locomotive at the front (right)
+      const carColors = ["#2e86de", "#27ae60", "#e17055"];
+      let cx = 0;
+      for (let i = 0; i < 3; i++) {
+        makeCar(cx, 440, carColors[i], 4);
+        if (i < 3) {
+          const c = document.createElement("div");
+          c.className = "coupler";
+          Object.assign(c.style, { left: cx + 440 + "px", width: "24px" });
+          train.appendChild(c);
+        }
+        cx += 464;
+      }
+
+      // locomotive
+      const locoX = cx;
+      const loco = svgEl("svg", { class: "loco-body", viewBox: "0 0 520 400", width: 520, height: 400 });
+      loco.style.left = locoX + "px";
+      loco.style.top = "460px";
+      loco.innerHTML = `
+        <rect x="0" y="120" width="170" height="250" rx="12" fill="#c0392b" stroke="rgba(0,0,0,.25)" stroke-width="5"/>
+        <rect x="-10" y="100" width="190" height="30" rx="10" fill="#3a3f48"/>
+        <rect x="30" y="150" width="105" height="85" rx="10" fill="#dff3ff" stroke="#2b2f36" stroke-width="6"/>
+        <rect x="160" y="200" width="300" height="170" rx="20" fill="#2d3436"/>
+        <rect x="150" y="300" width="330" height="60" rx="8" fill="#c0392b"/>
+        <circle cx="460" cy="285" r="85" fill="#2d3436"/>
+        <rect x="200" y="215" width="250" height="16" rx="8" fill="#e5c06a"/>
+        <rect x="200" y="255" width="250" height="10" rx="5" fill="#e5c06a"/>
+        <rect x="370" y="110" width="50" height="100" fill="#2d3436"/>
+        <rect x="355" y="92" width="80" height="26" rx="6" fill="#3a3f48"/>
+        <circle cx="280" cy="190" r="26" fill="#e5c06a"/>
+        <circle cx="490" cy="250" r="22" fill="#fff6c9" stroke="#2b2f36" stroke-width="5"/>
+        <path d="M470 360 L520 395 L470 395 Z" fill="#7f8c8d"/>`;
+      train.appendChild(loco);
+      // driver in the cab window
+      const cab = document.createElement("div");
+      Object.assign(cab.style, { position: "absolute", left: locoX + 36 + "px", top: 616 + "px", width: "93px", height: "73px", overflow: "hidden", borderRadius: "6px" });
+      train.appendChild(cab);
+      makePerson(cab);
+      cab.querySelector(".person").insertAdjacentHTML("beforeend", `<div class="hat" style="background:#1f3a5f"></div>`);
+
+      makeWheel(locoX + 85, 74);
+      makeWheel(locoX + 250, 100);
+      makeWheel(locoX + 380, 100);
+      // connecting rod
+      const rod = document.createElement("div");
+      Object.assign(rod.style, { position: "absolute", left: locoX + 240 + "px", top: 846 + "px", width: "150px", height: "10px", background: "#bdc3c7", borderRadius: "5px" });
+      train.appendChild(rod);
+
+      // smoke puffs (chimney top at loco x+395, y 460+92)
+      for (let i = 0; i < 9; i++) {
+        const p = document.createElement("div");
+        p.className = "puff";
+        Object.assign(p.style, { left: locoX + 395 - 35 + "px", top: 460 + 80 - 35 + "px" });
+        train.appendChild(p);
+        puffs.push(p);
+      }
+
+      // ---------- timeline ----------
+      const tl = gsap.timeline({ paused: true });
+      const loop = (target, vars, period) =>
+        tl.to(target, { ...vars, duration: period, ease: "none", repeat: Math.ceil(DUR / period) }, 0);
+
+      // parallax scroll (camera follows the train, landscape slides left)
+      loop("#clouds", { x: -1920 }, 60);
+      loop("#mountains", { x: -1920 }, 30);
+      loop("#hills", { x: -1920 }, 12);
+      loop("#trees", { x: -1920 }, 4);
+      loop("#sleepers", { x: -480 }, 0.5);
+      loop("#foreground", { x: -1920 }, 2.4);
+
+      // train: enters from the left, cruises, then pulls ahead and exits right
+      const trainW = locoX + 520;
+      tl.set("#train", { x: -trainW - 40 }, 0);
+      tl.to("#train", { x: 1920 - trainW - 40, duration: 4, ease: "power2.out" }, 0);
+      tl.to("#train", { x: 2000, duration: 3.2, ease: "power2.in" }, 8.6);
+      // gentle bounce of the whole train
+      tl.to("#train", { y: -3, duration: 0.18, ease: "sine.inOut", yoyo: true, repeat: Math.ceil(DUR / 0.18) }, 0);
+
+      // wheels
+      wheels.forEach((w) => tl.to(w, { rotation: 360, duration: 0.6, ease: "none", repeat: Math.ceil(DUR / 0.6), transformOrigin: "50% 50%" }, 0));
+      // connecting rod circles with the big wheels
+      tl.to(rod, { keyframes: { x: [0, 12, 0, -12, 0], y: [-12, 0, 12, 0, -12] }, duration: 0.6, ease: "none", repeat: Math.ceil(DUR / 0.6) }, 0);
+
+      // passengers bob, each with their own rhythm
+      people.forEach((p, i) => {
+        const d = 0.35 + rnd() * 0.35;
+        tl.fromTo(p, { y: 0 }, { y: -5 - rnd() * 4, rotation: (rnd() - 0.5) * 6, duration: d, ease: "sine.inOut", yoyo: true, repeat: Math.ceil(DUR / d) }, rnd() * 0.4);
+      });
+
+      // smoke
+      puffs.forEach((p, i) => {
+        const period = 1.8;
+        tl.fromTo(
+          p,
+          { x: 0, y: 0, scale: 0.4, opacity: 0.95 },
+          { x: -320 - i * 6, y: -260, scale: 2.8, opacity: 0, duration: period, ease: "power1.out", repeat: Math.ceil(DUR / period) },
+          (i * period) / puffs.length
+        );
+      });
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
