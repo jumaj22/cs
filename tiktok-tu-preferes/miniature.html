@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      @font-face { font-family: "Cormorant"; src: url("assets/fonts/cormorant-semibold.ttf"); font-weight: 600; }
+      @font-face { font-family: "Cormorant"; src: url("assets/fonts/cormorant-italic.ttf"); font-weight: 500; font-style: italic; }
+      @font-face { font-family: "Noto Color Emoji"; src: url("assets/fonts/NotoColorEmoji.ttf"); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { width: 1080px; height: 1920px; overflow: hidden; background: #f6ead9; font-family: "Inter", sans-serif; color: #3a2219; position: relative; }
+      .blob { position: absolute; border-radius: 50%; filter: blur(40px); opacity: .6; }
+      .emoji { font-family: "Noto Color Emoji"; line-height: 1; }
+      .top { position: absolute; left: 0; width: 1080px; top: 250px; text-align: center; }
+      .big { font-weight: 900; font-size: 150px; letter-spacing: -.045em; line-height: 1.14; color: #94533d; }
+      .sub { font-family: "Cormorant"; font-style: italic; font-weight: 500; font-size: 112px; margin-top: 6px; }
+      .vs { position: absolute; left: 70px; width: 940px; top: 790px; height: 330px; }
+      .opt { position: absolute; top: 0; width: 400px; height: 330px; border-radius: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px 30px; }
+      .opt .emoji { font-size: 120px; margin-bottom: 18px; }
+      .opt .t { font-weight: 800; font-size: 44px; line-height: 1.05; letter-spacing: -.02em; }
+      .a { left: 0; background: linear-gradient(160deg, #a7624a, #94533d 60%, #6f3a29); color: #fffaf3; transform: rotate(-4deg); box-shadow: 0 24px 50px rgba(111,58,41,.35); }
+      .b { right: 0; background: #fffaf3; transform: rotate(4deg); box-shadow: 0 24px 50px rgba(111,58,41,.2), inset 0 0 0 5px #e9b8a4; }
+      .ou { position: absolute; left: 395px; top: 90px; width: 150px; height: 150px; border-radius: 50%; background: #3a2219; color: #f6ead9; display: flex; align-items: center; justify-content: center; font-family: "Cormorant"; font-style: italic; font-weight: 500; font-size: 76px; z-index: 3; box-shadow: 0 14px 30px rgba(58,34,25,.35); }
+      .book { position: absolute; left: 250px; top: 1200px; width: 300px; height: 451px; transform: rotate(-7deg); box-shadow: 0 30px 60px rgba(60,30,10,.45); border-radius: 3px 6px 6px 3px; }
+      .sticker { position: absolute; left: 640px; top: 1420px; width: 280px; height: 280px; border-radius: 50%; background: #3a2219; color: #f6ead9; transform: rotate(8deg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 18px 40px rgba(58,34,25,.35); }
+      .sticker b { font-weight: 900; font-size: 92px; line-height: .9; }
+      .sticker span { font-family: "Cormorant"; font-style: italic; font-weight: 500; font-size: 38px; line-height: 1; margin-top: 6px; }
+      .heart { position: absolute; font-size: 74px; }
+    </style>
+  </head>
+  <body>
+    <div class="blob" style="left:-200px;top:-150px;width:700px;height:700px;background:#f2c6b2"></div>
+    <div class="blob" style="left:600px;top:500px;width:650px;height:650px;background:#f4d9b8"></div>
+    <div class="blob" style="left:-150px;top:1300px;width:800px;height:800px;background:#efc0ab"></div>
+    <div class="top">
+      <div class="big">TU PRÉFÈRES…</div>
+      <div class="sub">version couple <span class="emoji" style="font-size:96px">💑</span></div>
+    </div>
+    <div class="vs">
+      <div class="opt a"><div class="emoji">🕯️</div><div class="t">Dîner aux chandelles</div></div>
+      <div class="ou">ou</div>
+      <div class="opt b"><div class="emoji">🍝</div><div class="t">Resto surprise</div></div>
+    </div>
+    <img class="book" src="assets/couverture.png" alt="" />
+    <div class="sticker"><b>6</b><span>questions<br />pour vous deux</span></div>
+    <div class="heart emoji" style="left:760px;top:1260px;transform:rotate(14deg)">❤️</div>
+    <div class="heart emoji" style="left:120px;top:1450px;font-size:54px;transform:rotate(10deg)">❤️</div>
+  </body>
+</html>
