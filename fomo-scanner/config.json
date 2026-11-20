@@ -1,0 +1,139 @@
+{
+  "chains": ["solana", "base"],
+  "scanIntervalSec": 60,
+
+  "data": {
+    "useDexScreenerProfiles": true,
+    "useDexScreenerBoosts": true,
+    "useGeckoNewPools": true,
+    "useGeckoTrendingPools": true,
+    "maxPairAgeHours": 24,
+    "watchlistHours": 6,
+    "maxWatchlistSize": 400
+  },
+
+  "fomo": {
+    "minLiquidityUsd": 20000,
+    "minVolume5mUsd": 5000,
+    "volumeSpikeRatio": 3,
+    "minPriceChange5mPct": 3,
+    "minPriceChange1hPct": 10,
+    "maxPriceChange1hPct": 300,
+    "minBuys5m": 15,
+    "minBuyTxGrowthRatio": 1.5,
+    "minBuySellRatio5m": 1.2
+  },
+
+  "antiScam": {
+    "minAgeMinutes": 10,
+    "requireLiquidityLocked": true,
+    "minLpLockedPct": 90,
+    "unknownLpLock": "reject",
+    "programLockedDexIds": ["pumpfun", "moonshot"],
+    "maxTop10HolderPct": 30,
+    "unknownTop10": "reject",
+    "rejectHoneypot": true,
+    "maxSellTaxPct": 10,
+    "maxBuyTaxPct": 10,
+    "rejectMintable": true,
+    "rejectBlacklist": true,
+    "rejectOnSecurityApiFailure": true,
+    "useHoneypotIsForEvm": true,
+    "useRugCheckForSolana": true,
+    "securityCacheMinutes": 30
+  },
+
+  "signals": {
+    "entry": {
+      "enableFomo": true,
+      "enableSmartMoney": true,
+      "cooldownMinutes": 120,
+      "maxOpenPositions": 10
+    },
+    "exit": {
+      "takeProfitPct": 50,
+      "stopLossPct": 20,
+      "trailingStop": {
+        "enabled": true,
+        "activationPct": 25,
+        "distancePct": 15
+      },
+      "maxHoldMinutes": 720,
+      "smartMoneyExitMinSellers": 2
+    }
+  },
+
+  "smartMoney": {
+    "enabled": true,
+    "chains": ["solana"],
+    "criteria": {
+      "lookbackDays": 30,
+      "minWinRatePct": 60,
+      "minTrades": 30,
+      "maxTrades": 3000,
+      "minClosedPositions": 10,
+      "minRealizedPnlUsd": 0
+    },
+    "refreshHours": 24,
+    "maxWallets": 40,
+    "maxCandidatesPerRefresh": 60,
+    "maxHistoryPagesPerWallet": 3,
+    "candidateSources": {
+      "birdeyeTopTraders": true,
+      "heliusRecentTradersOfWinners": true,
+      "winnerTokensPerRefresh": 8,
+      "seedWallets": []
+    },
+    "monitor": {
+      "mode": "polling",
+      "pollIntervalSec": 15,
+      "signatureRpc": "public",
+      "publicRpcUrl": "https://api.mainnet-beta.solana.com",
+      "webhookPort": 3000,
+      "webhookPath": "/helius"
+    },
+    "cluster": {
+      "minWallets": 3,
+      "windowMinutes": 30,
+      "minBuyUsdPerWallet": 50
+    },
+    "minLiquidityUsd": 20000,
+    "fallbackSolPriceUsd": 150
+  },
+
+  "paper": {
+    "csvFile": "data/trades.csv",
+    "positionSizeUsd": 100,
+    "startingCapitalUsd": 1000,
+    "simulatedSlippagePct": 1,
+    "priceCheckIntervalSec": 30
+  },
+
+  "telegram": {
+    "enabled": true,
+    "sendStartupMessage": true,
+    "sendExitAlerts": true,
+    "sendSmartMoneySellAlerts": true,
+    "minIntervalMs": 1100
+  },
+
+  "http": {
+    "timeoutMs": 15000,
+    "maxRetries": 4,
+    "baseBackoffMs": 1000,
+    "maxBackoffMs": 30000,
+    "defaultMinIntervalMs": 200,
+    "minIntervalMsByHost": {
+      "api.dexscreener.com": 250,
+      "api.geckoterminal.com": 2200,
+      "api.gopluslabs.io": 2100,
+      "api.honeypot.is": 500,
+      "api.rugcheck.xyz": 1100,
+      "public-api.birdeye.so": 1100,
+      "api.helius.xyz": 150,
+      "mainnet.helius-rpc.com": 120,
+      "api.mainnet-beta.solana.com": 150,
+      "api.telegram.org": 50
+    }
+  }
+}

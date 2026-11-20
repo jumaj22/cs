@@ -1,0 +1,23 @@
+{
+  "name": "fomo-scanner",
+  "version": "1.0.0",
+  "description": "Scanner FOMO + smart money pour Solana/Base, alertes Telegram et trading papier (aucun ordre réel).",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "backtest": "node scripts/backtest.js",
+    "telegram:test": "node scripts/telegram-test.js",
+    "wallets:refresh": "node scripts/refresh-wallets.js",
+    "check": "node scripts/check-setup.js",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["solana", "base", "dexscreener", "fomo", "smart-money", "paper-trading"],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
